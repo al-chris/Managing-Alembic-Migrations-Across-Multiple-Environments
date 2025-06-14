@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Managing Alembic Migrations Across Multiple Environments</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 40px;
+      line-height: 1.6;
+      background-color: #f9f9f9;
+      color: #333;
+    }
+    code, pre {
+      background-color: #eee;
+      padding: 4px 6px;
+      border-radius: 4px;
+      font-family: monospace;
+    }
+    pre {
+      padding: 10px;
+      overflow-x: auto;
+    }
+    h1, h2, h3 {
+      color: #222;
+    }
+    .note {
+      background-color: #fff3cd;
+      border-left: 4px solid #ffeeba;
+      padding: 10px;
+      margin: 1em 0;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Managing Alembic Migrations Across Multiple Environments</h1>
+
+  <p><strong>Alembic</strong> is a powerful tool for handling SQLAlchemy schema migrations. In real-world projects, you often need to manage separate databases for <code>local</code>, <code>staging</code>, and <code>production</code> environments — each with their own migration history and configuration.</p>
+
+  <h2>📁 Why Separate Environments?</h2>
+  <ul>
+    <li><strong>Local:</strong> For development and testing on your machine.</li>
+    <li><strong>Staging:</strong> For testing production-like deployments.</li>
+    <li><strong>Production:</strong> The live environment serving real users.</li>
+  </ul>
+
+  <h2>🔧 Step 1: Extend <code>alembic.ini</code></h2>
+
+  <p>Update your <code>alembic.ini</code> file to define multiple environments:</p>
+
+  <pre><code>[DEFAULT]
+prepend_sys_path = .
+version_path_separator = os
+
+[alembic]
+script_location = alembic/local
+sqlalchemy.url = driver://user:pass@localhost/localdb
+
+[staging]
+script_location = alembic/staging
+sqlalchemy.url = driver://user:pass@staging-server/stagingdb
+
+[production]
+script_location = alembic/production
+sqlalchemy.url = driver://user:pass@prod-server/proddb
+</code></pre>
+
+  <h2>📂 Step 2: Initialize Alembic Environments</h2>
+
+  <p>Run the following commands to create migration folders for each environment:</p>
+
+  <pre><code># Local environment
+alembic init alembic/local
+
+# Staging environment
+alembic -n staging init alembic/staging
+
+# Production environment
+alembic -n production init alembic/production
+</code></pre>
+
+  <p>This creates a separate <code>env.py</code> and <code>versions/</code> directory for each environment.</p>
+
+  <h2>📝 Step 3: Create Migrations</h2>
+
+  <p>Autogenerate or write new migration scripts for a specific environment:</p>
+
+  <pre><code># Local development
+alembic revision --autogenerate -m "add users table"
+
+# Staging
+alembic -n staging revision --autogenerate -m "add users table"
+
+# Production
+alembic -n production revision --autogenerate -m "add users table"
+</code></pre>
+
+  <h2>⬆️ Step 4: Apply Migrations</h2>
+
+  <p>Apply your changes to the appropriate database:</p>
+
+  <pre><code># Local
+alembic upgrade head
+
+# Staging
+alembic -n staging upgrade head
+
+# Production
+alembic -n production upgrade head
+</code></pre>
+
+  <h2>🔍 Step 5: Check Current Revision</h2>
+
+  <pre><code># Local
+alembic current
+
+# Staging
+alembic -n staging current
+
+# Production
+alembic -n production current
+</code></pre>
+
+  <div class="note">
+    <strong>Note:</strong> Make sure your <code>env.py</code> files import the correct metadata or models so Alembic can detect changes during autogeneration.
+  </div>
+
+  <h2>📌 Folder Structure</h2>
+  <pre><code>alembic/
+├── local/
+│   ├── env.py
+│   └── versions/
+├── staging/
+│   ├── env.py
+│   └── versions/
+└── production/
+    ├── env.py
+    └── versions/
+</code></pre>
+
+  <h2>✅ Summary</h2>
+  <ul>
+    <li>Extend <code>alembic.ini</code> with multiple environments.</li>
+    <li>Use <code>-n</code> to target a specific environment.</li>
+    <li>Maintain isolated migration histories.</li>
+  </ul>
+
+  <p>With this setup, you can safely test migrations in local and staging environments before applying them to production.</p>
+
+</body>
+</html>
