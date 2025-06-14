@@ -3,54 +3,93 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Managing Alembic Migrations Across Multiple Environments</title>
+  <title>Managing Alembic Migrations</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      margin: 40px;
-      line-height: 1.6;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       background-color: #f9f9f9;
       color: #333;
+      margin: 0;
+      padding: 0;
+      font-size: 16px;
+      line-height: 1.6;
     }
+
+    .container {
+      max-width: 880px;
+      margin: auto;
+      padding: 2rem 1rem;
+    }
+
+    h1, h2, h3 {
+      color: #111;
+      line-height: 1.3;
+      margin-top: 2rem;
+    }
+
+    h1 {
+      font-size: 2.2rem;
+      margin-bottom: 1rem;
+    }
+
+    h2 {
+      font-size: 1.6rem;
+      margin-top: 2rem;
+    }
+
     code, pre {
       background-color: #eee;
-      padding: 4px 6px;
+      padding: 0.25rem 0.5rem;
       border-radius: 4px;
-      font-family: monospace;
+      font-family: Menlo, Consolas, monospace;
     }
+
     pre {
-      padding: 10px;
+      padding: 1rem;
       overflow-x: auto;
+      background: #f4f4f4;
+      font-size: 0.95rem;
     }
-    h1, h2, h3 {
-      color: #222;
+
+    ul {
+      padding-left: 1.2rem;
     }
+
     .note {
-      background-color: #fff3cd;
-      border-left: 4px solid #ffeeba;
-      padding: 10px;
-      margin: 1em 0;
+      background-color: #fff8db;
+      border-left: 4px solid #ffd43b;
+      padding: 1rem;
+      margin: 1.5rem 0;
+      border-radius: 4px;
+    }
+
+    @media (min-width: 900px) {
+      body {
+        font-size: 18px;
+      }
+
+      pre {
+        font-size: 1rem;
+      }
     }
   </style>
 </head>
 <body>
+  <div class="container">
+    <h1>Managing Alembic Migrations Across Multiple Environments</h1>
 
-  <h1>Managing Alembic Migrations Across Multiple Environments</h1>
+    <p><strong>Alembic</strong> is a powerful tool for handling SQLAlchemy schema migrations. In real-world projects, you often need to manage separate databases for <code>local</code>, <code>staging</code>, and <code>production</code> environments — each with their own migration history and configuration.</p>
 
-  <p><strong>Alembic</strong> is a powerful tool for handling SQLAlchemy schema migrations. In real-world projects, you often need to manage separate databases for <code>local</code>, <code>staging</code>, and <code>production</code> environments — each with their own migration history and configuration.</p>
+    <h2>📁 Why Separate Environments?</h2>
+    <ul>
+      <li><strong>Local:</strong> For development and testing on your machine.</li>
+      <li><strong>Staging:</strong> For testing production-like deployments.</li>
+      <li><strong>Production:</strong> The live environment serving real users.</li>
+    </ul>
 
-  <h2>📁 Why Separate Environments?</h2>
-  <ul>
-    <li><strong>Local:</strong> For development and testing on your machine.</li>
-    <li><strong>Staging:</strong> For testing production-like deployments.</li>
-    <li><strong>Production:</strong> The live environment serving real users.</li>
-  </ul>
-
-  <h2>🔧 Step 1: Extend <code>alembic.ini</code></h2>
-
-  <p>Update your <code>alembic.ini</code> file to define multiple environments:</p>
-
-  <pre><code>[DEFAULT]
+    <h2>🔧 Step 1: Extend <code>alembic.ini</code></h2>
+    <p>Update your <code>alembic.ini</code> file to define multiple environments:</p>
+    <pre><code>[DEFAULT]
 prepend_sys_path = .
 version_path_separator = os
 
@@ -64,71 +103,54 @@ sqlalchemy.url = driver://user:pass@staging-server/stagingdb
 
 [production]
 script_location = alembic/production
-sqlalchemy.url = driver://user:pass@prod-server/proddb
-</code></pre>
+sqlalchemy.url = driver://user:pass@prod-server/proddb</code></pre>
 
-  <h2>📂 Step 2: Initialize Alembic Environments</h2>
-
-  <p>Run the following commands to create migration folders for each environment:</p>
-
-  <pre><code># Local environment
+    <h2>📂 Step 2: Initialize Alembic Environments</h2>
+    <pre><code># Local environment
 alembic init alembic/local
 
 # Staging environment
 alembic -n staging init alembic/staging
 
 # Production environment
-alembic -n production init alembic/production
-</code></pre>
+alembic -n production init alembic/production</code></pre>
 
-  <p>This creates a separate <code>env.py</code> and <code>versions/</code> directory for each environment.</p>
-
-  <h2>📝 Step 3: Create Migrations</h2>
-
-  <p>Autogenerate or write new migration scripts for a specific environment:</p>
-
-  <pre><code># Local development
+    <h2>📝 Step 3: Create Migrations</h2>
+    <pre><code># Local development
 alembic revision --autogenerate -m "add users table"
 
 # Staging
 alembic -n staging revision --autogenerate -m "add users table"
 
 # Production
-alembic -n production revision --autogenerate -m "add users table"
-</code></pre>
+alembic -n production revision --autogenerate -m "add users table"</code></pre>
 
-  <h2>⬆️ Step 4: Apply Migrations</h2>
-
-  <p>Apply your changes to the appropriate database:</p>
-
-  <pre><code># Local
+    <h2>⬆️ Step 4: Apply Migrations</h2>
+    <pre><code># Local
 alembic upgrade head
 
 # Staging
 alembic -n staging upgrade head
 
 # Production
-alembic -n production upgrade head
-</code></pre>
+alembic -n production upgrade head</code></pre>
 
-  <h2>🔍 Step 5: Check Current Revision</h2>
-
-  <pre><code># Local
+    <h2>🔍 Step 5: Check Current Revision</h2>
+    <pre><code># Local
 alembic current
 
 # Staging
 alembic -n staging current
 
 # Production
-alembic -n production current
-</code></pre>
+alembic -n production current</code></pre>
 
-  <div class="note">
-    <strong>Note:</strong> Make sure your <code>env.py</code> files import the correct metadata or models so Alembic can detect changes during autogeneration.
-  </div>
+    <div class="note">
+      <strong>Note:</strong> Make sure your <code>env.py</code> files import the correct metadata or models so Alembic can detect schema changes.
+    </div>
 
-  <h2>📌 Folder Structure</h2>
-  <pre><code>alembic/
+    <h2>📌 Folder Structure</h2>
+    <pre><code>alembic/
 ├── local/
 │   ├── env.py
 │   └── versions/
@@ -137,17 +159,14 @@ alembic -n production current
 │   └── versions/
 └── production/
     ├── env.py
-    └── versions/
-</code></pre>
+    └── versions/</code></pre>
 
-  <h2>✅ Summary</h2>
-  <ul>
-    <li>Extend <code>alembic.ini</code> with multiple environments.</li>
-    <li>Use <code>-n</code> to target a specific environment.</li>
-    <li>Maintain isolated migration histories.</li>
-  </ul>
-
-  <p>With this setup, you can safely test migrations in local and staging environments before applying them to production.</p>
-
+    <h2>✅ Summary</h2>
+    <ul>
+      <li>Use the <code>-n</code> flag for managing environment-specific migrations.</li>
+      <li>Isolate migrations per environment to reduce errors.</li>
+      <li>Test in local and staging before applying to production.</li>
+    </ul>
+  </div>
 </body>
 </html>
